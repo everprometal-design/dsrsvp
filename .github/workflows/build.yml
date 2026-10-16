@@ -11,11 +11,19 @@ jobs:
       - name: Compilar
         run: |
           apt-get update && apt-get install -y unzip
-          (dkp-pacman -S --noconfirm nds-dev || pacman -S --noconfirm nds-dev)
           unzip -q dsrsvp.zip
-          cd dsrsvp
+          EX=$(find /opt/devkitpro/examples/nds -maxdepth 3 -type d -name hello_world | head -1)
+          echo "Plantilla: $EX"
+          mkdir dsrsvp_build
+          cp -r "$EX"/. dsrsvp_build/
+          cd dsrsvp_build
+          echo "=== Makefile de la plantilla ==="
+          head -70 Makefile
+          rm -rf source/*
+          cp ../dsrsvp/source/*.c ../dsrsvp/source/*.h source/
+          sed -i 's/^\(LIBS[[:space:]]*:\?=[[:space:]]*\)/\1-lfat /' Makefile
           make
       - uses: actions/upload-artifact@v4
         with:
           name: dsrsvp
-          path: dsrsvp/dsrsvp.nds
+          path: dsrsvp_build/*.nds
